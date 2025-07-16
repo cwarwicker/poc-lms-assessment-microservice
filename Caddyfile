@@ -1,0 +1,23 @@
+assess.poc.localhost {
+
+    root * /srv/www/assess/public
+    file_server
+    tls internal
+
+    php_fastcgi poc-assess:9000 {
+        root /app/public
+    }
+    
+}
+
+moodle.poc.localhost poc-proxy {
+
+    root * /srv/www/moodle
+    file_server
+    tls internal
+
+    php_fastcgi poc-moodle:9000 {
+        root /app
+    }
+    
+}

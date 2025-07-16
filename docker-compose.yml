@@ -1,0 +1,65 @@
+---
+services:
+  assess:
+    container_name: poc-assess
+    networks:
+      - poc-network
+    volumes:
+      - "./assess/:/app"
+    ports:
+      - 5173:5173
+    build:
+      context: .
+      target: laravel
+      args:
+        PHP_VERSION: 8.3
+    extra_hosts:
+      - "moodle.poc.localhost:host-gateway"
+  grade:
+    container_name: poc-grade
+    networks:
+      - poc-network
+    volumes:
+      - "./grade/:/app"
+    ports:
+      - 4567:4567
+    image: ruby:latest
+    working_dir: /app
+    command: "rerun ruby /app/index.rb 2>/dev/null"
+    entrypoint: sh -c "bundle install && rerun ruby /app/index.rb 2>/dev/null"
+  moodle:
+    container_name: poc-moodle
+    volumes:
+      - "./moodle/:/app"
+    networks:
+      - poc-network
+    build:
+      context: .
+      target: moodle
+      args:
+        PHP_VERSION: 8.3
+  db:
+    container_name: poc-db
+    networks:
+      - poc-network
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: main
+  caddy:
+    container_name: poc-proxy
+    image: caddy:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/srv/www
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    networks:
+      - poc-network
+networks:
+  poc-network:
+    external: true
